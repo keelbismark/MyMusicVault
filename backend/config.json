@@ -1,0 +1,9 @@
+{
+  "volume": 100,
+  "repeat": false,
+  "shuffle": false,
+  "theme": "dark",
+  "accent_color": "#ff6b6b",
+  "accent_color_dark": "#ff4757",
+  "language": "ru"
+}
