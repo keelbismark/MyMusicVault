@@ -64,7 +64,6 @@ class MusicPlayerApp:
             resizable=True,
             fullscreen=False,
             min_size=(800, 600),
-            confirm_close=True,
             text_select=True,
             zoomable=False,
         )
