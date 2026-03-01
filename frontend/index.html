@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n="app.title">My Music Vault</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/settings.css">
-    <link rel="stylesheet" href="css/add-music.css">
     <link rel="stylesheet" href="lib/font-awesome/css/all.min.css">
 </head>
 <body>
@@ -27,10 +25,6 @@
                 <div class="nav-item" data-view="favorites">
                     <i class="fas fa-heart"></i>
                     <span data-i18n="nav.favorites">Избранное</span>
-                </div>
-                <div class="nav-item" data-view="playlists">
-                    <i class="fas fa-play-circle"></i>
-                    <span data-i18n="nav.playlists">Плейлисты</span>
                 </div>
                 <div class="nav-item" id="settings-btn">
                     <i class="fas fa-cog"></i>
@@ -61,7 +55,7 @@
                 <div class="top-actions">
                     <div class="search-container">
                         <i class="fas fa-search search-icon"></i>
-                        <label for="search-input"></label><input type="text" id="search-input" placeholder="" class="search-input">
+                        <label for="search-input"></label><input type="text" id="search-input" class="search-input" data-i18n-placeholder="search.placeholder">
                         <button class="search-btn">
                             <i class="fas fa-filter"></i>
                         </button>
@@ -170,7 +164,6 @@
         </div>
     </div>
 
-    <!-- Add Music Modal -->
     <div class="modal-overlay" id="add-music-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -192,11 +185,7 @@
                 <div class="tab-content active" id="youtube-tab">
                     <div class="input-group">
                         <label for="youtube-url" data-i18n="add_music.youtube_url">Ссылка или поисковый запрос:</label>
-                        <input type="text" id="youtube-url" placeholder="https://music.youtube.com/ или название трека">
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="is-search">
-                        <label for="is-search" data-i18n="add_music.search_mode">Режим поиска</label>
+                        <input type="text" id="youtube-url" placeholder="https://music.youtube.com/">
                     </div>
                     <div class="download-status" id="download-status"></div>
                     <div class="modal-actions">
@@ -234,7 +223,6 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -264,12 +252,12 @@
                     <h3 data-i18n="settings.language">Язык</h3>
                     <div class="language-selector">
                         <button class="language-btn active" data-lang="ru">
-                            <img src="https://flagcdn.com/w20/ru.png" alt="RU">
-                            <span>Русский</span>
+                            <img src="icons/ru.png" alt="RU">
+                            <span data-i18n="language.russian">Русский</span>
                         </button>
                         <button class="language-btn" data-lang="en">
-                            <img src="https://flagcdn.com/w20/us.png" alt="EN">
-                            <span>English</span>
+                            <img src="icons/us.png" alt="EN">
+                            <span data-i18n="language.english">English</span>
                         </button>
                     </div>
                 </div>

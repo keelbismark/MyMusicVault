@@ -1,0 +1,7 @@
+pillow
+yt-dlp
+mutagen
+pywebview
+requests
+flask-cors
+flask

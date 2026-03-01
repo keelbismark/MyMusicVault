@@ -1,4 +1,6 @@
 import os
+import sys
+import glob
 
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
@@ -6,14 +8,19 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder='../frontend', static_url_path='/')
 CORS(app)
 
-MUSIC_FOLDER = os.path.join(os.path.dirname(__file__), '../music')
+MUSIC_FOLDER = os.path.join(os.path.dirname(sys.executable), 'music')
+SUPPORTED_EXTENSIONS = ('.mp3', '.flac', '.wav', '.ogg', '.m4a', '.webm', '.mp4')
+
+try:
+    os.mkdir(f"{os.path.dirname(sys.executable)}/music")
+except:
+    pass
 
 try:
     from json_handler import JSONHandler
     from youtube_downloader import YouTubeDownloader
 except ImportError:
     import sys
-
     sys.path.insert(0, os.path.dirname(__file__))
     from json_handler import JSONHandler
     from youtube_downloader import YouTubeDownloader
@@ -41,56 +48,55 @@ class MusicPlayer:
             os.makedirs(self.music_folder)
 
         self.playlist = []
-        songs = self.youtube_downloader.get_available_songs()
 
-        for song in songs:
-            filepath = song['path']
-            filename = song['filename']
+        for ext in SUPPORTED_EXTENSIONS:
+            pattern = os.path.join(self.music_folder, f'*{ext}')
+            for filepath in glob.glob(pattern, recursive=False):
+                filename = os.path.basename(filepath)
+                try:
+                    from player import AudioMetadata
+                    metadata = AudioMetadata.get_metadata(filepath)
 
-            try:
-                from player import AudioMetadata
-                metadata = AudioMetadata.get_metadata(filepath)
+                    if metadata:
+                        title = metadata.get('title', os.path.splitext(filename)[0])
+                        artist = metadata.get('artist', 'Неизвестный артист')
+                        album = metadata.get('album', 'Без альбома')
+                        duration = metadata.get('duration', 0)
+                        cover_data = metadata.get('cover_data', None)
+                    else:
+                        title = os.path.splitext(filename)[0]
+                        artist = 'Неизвестный артист'
+                        album = 'Без альбома'
+                        duration = 0
+                        cover_data = None
 
-                if metadata:
-                    title = metadata.get('title', os.path.splitext(filename)[0])
-                    artist = metadata.get('artist', 'Неизвестный артист')
-                    album = metadata.get('album', 'Без альбома')
-                    duration = metadata.get('duration', 0)
-                    cover_data = metadata.get('cover_data', None)
-                else:
-                    title = os.path.splitext(filename)[0]
-                    artist = 'Неизвестный артист'
-                    album = 'Без альбома'
-                    duration = 0
-                    cover_data = None
-
-                song_info = {
-                    'id': len(self.playlist),
-                    'title': title,
-                    'artist': artist,
-                    'album': album,
-                    'filename': filename,
-                    'path': filepath,
-                    'duration': duration,
-                    'favorite': filename in self.favorites,
-                    'format': os.path.splitext(filename)[1][1:].upper(),
-                    'cover_data': cover_data  # Добавляем данные обложки
-                }
-                self.playlist.append(song_info)
-            except Exception:
-                song_info = {
-                    'id': len(self.playlist),
-                    'title': os.path.splitext(filename)[0],
-                    'artist': 'Неизвестный артист',
-                    'album': 'Без альбома',
-                    'filename': filename,
-                    'path': filepath,
-                    'duration': 0,
-                    'favorite': filename in self.favorites,
-                    'format': os.path.splitext(filename)[1][1:].upper(),
-                    'cover_data': None
-                }
-                self.playlist.append(song_info)
+                    song_info = {
+                        'id': len(self.playlist),
+                        'title': title,
+                        'artist': artist,
+                        'album': album,
+                        'filename': filename,
+                        'path': filepath,
+                        'duration': duration,
+                        'favorite': filename in self.favorites,
+                        'format': os.path.splitext(filename)[1][1:].upper(),
+                        'cover_data': cover_data
+                    }
+                    self.playlist.append(song_info)
+                except Exception:
+                    song_info = {
+                        'id': len(self.playlist),
+                        'title': os.path.splitext(filename)[0],
+                        'artist': 'Неизвестный артист',
+                        'album': 'Без альбома',
+                        'filename': filename,
+                        'path': filepath,
+                        'duration': 0,
+                        'favorite': filename in self.favorites,
+                        'format': os.path.splitext(filename)[1][1:].upper(),
+                        'cover_data': None
+                    }
+                    self.playlist.append(song_info)
 
         return self.playlist
 
@@ -140,11 +146,8 @@ class MusicPlayer:
                 results.append(song)
         return results
 
-    def download_from_youtube(self, url, is_search=False):
-        if is_search:
-            return self.youtube_downloader.search_and_download(url)
-        else:
-            return self.youtube_downloader.download_from_url(url)
+    def download_from_youtube(self, url):
+        return self.youtube_downloader.download_from_url(url)
 
 
 player = MusicPlayer(MUSIC_FOLDER)
@@ -212,12 +215,11 @@ def get_locale(lang):
 def download_song():
     data = request.json
     url = data.get('url', '')
-    is_search = data.get('is_search', False)
 
     if not url:
         return jsonify({'success': False, 'error': 'URL is required'}), 400
 
-    result = player.download_from_youtube(url, is_search)
+    result = player.download_from_youtube(url)
 
     if result['success']:
         player.playlist = []
@@ -229,12 +231,10 @@ def download_song():
 @app.route('/api/import', methods=['POST'])
 def import_songs():
     try:
-        import shutil
         files = request.files.getlist('files')
-
         imported = []
         for file in files:
-            if file.filename.lower().endswith(('.mp3', '.flac', '.wav', '.ogg', '.m4a', '.webm', '.mp4')):
+            if file.filename.lower().endswith(SUPPORTED_EXTENSIONS):
                 filepath = os.path.join(MUSIC_FOLDER, file.filename)
                 file.save(filepath)
                 imported.append(file.filename)

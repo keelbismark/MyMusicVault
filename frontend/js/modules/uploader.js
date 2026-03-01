@@ -3,17 +3,14 @@ export class Uploader {
         this.selectedFiles = [];
     }
 
-    async downloadFromYouTube(url, isSearch) {
+    async downloadFromYouTube(url) {
         try {
             const response = await fetch('/api/download', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    url: url,
-                    is_search: isSearch
-                })
+                body: JSON.stringify({ url })
             });
             return await response.json();
         } catch (error) {

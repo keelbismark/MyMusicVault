@@ -116,28 +116,6 @@ class YouTubeDownloader:
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
-    def search_and_download(self, query):
-        try:
-            opts = self.ydl_opts.copy()
-            opts['default_search'] = 'ytsearch1:'
-            with yt_dlp.YoutubeDL(opts) as ydl:
-                info = ydl.extract_info(query, download=True)
-                if 'entries' in info:
-                    info = info['entries'][0]
-                m4a_path = self._get_final_path(info)
-                self._embed_all(m4a_path, info)
-
-                return {
-                    'success': True,
-                    'filename': m4a_path.name,
-                    'title': info.get('title', 'Unknown'),
-                    'artist': info.get('artist') or info.get('uploader', 'Unknown Artist'),
-                    'album': info.get('album', 'Unknown Album'),
-                    'duration': info.get('duration', 0)
-                }
-        except Exception as e:
-            return {'success': False, 'error': str(e)}
-
     def get_available_songs(self):
         songs = []
         for ext in ['*.m4a', '*.mp3']:

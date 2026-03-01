@@ -2,14 +2,17 @@ export class LibraryManager {
     constructor() {
         this.songs = [];
         this.filteredSongs = [];
+        this.unfilteredSongs = [];
         this.currentView = 'all';
         this.sortAZ = true;
+        this.searchQuery = '';
     }
 
     async loadSongs() {
         try {
             const response = await fetch('/api/songs');
             this.songs = await response.json();
+            this.unfilteredSongs = [...this.songs];
             this.filteredSongs = [...this.songs];
             this.applySorting();
             return this.songs;
@@ -22,7 +25,9 @@ export class LibraryManager {
     async loadFavorites() {
         try {
             const response = await fetch('/api/favorites');
-            this.filteredSongs = await response.json();
+            const favorites = await response.json();
+            this.unfilteredSongs = [...favorites];
+            this.filteredSongs = [...favorites];
             this.applySorting();
             return this.filteredSongs;
         } catch (error) {
@@ -56,23 +61,19 @@ export class LibraryManager {
     }
 
     async searchSongs(query) {
-        try {
-            const url = query ? `/api/search?q=${encodeURIComponent(query)}` : '/api/songs';
-            const response = await fetch(url);
-            const results = await response.json();
-
-            if (this.currentView === 'all') {
-                this.filteredSongs = results;
-            } else if (this.currentView === 'favorites') {
-                this.filteredSongs = results.filter(song => song.favorite);
-            }
-
-            this.applySorting();
-            return this.filteredSongs;
-        } catch (error) {
-            console.error('Error searching songs:', error);
-            return [];
+        this.searchQuery = query;
+        if (!query) {
+            this.filteredSongs = [...this.unfilteredSongs];
+        } else {
+            const q = query.toLowerCase();
+            this.filteredSongs = this.unfilteredSongs.filter(song =>
+                song.title.toLowerCase().includes(q) ||
+                (song.artist && song.artist.toLowerCase().includes(q)) ||
+                (song.album && song.album.toLowerCase().includes(q))
+            );
         }
+        this.applySorting();
+        return this.filteredSongs;
     }
 
     applySorting() {
@@ -83,6 +84,17 @@ export class LibraryManager {
                 titleA.localeCompare(titleB) :
                 titleB.localeCompare(titleA);
         });
+    }
+
+    async refresh() {
+        if (this.currentView === 'all') {
+            await this.loadSongs();
+        } else {
+            await this.loadFavorites();
+        }
+        if (this.searchQuery) {
+            await this.searchSongs(this.searchQuery);
+        }
     }
 
     getOriginalIndex(filename) {

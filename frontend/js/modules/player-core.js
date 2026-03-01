@@ -5,7 +5,7 @@ export class PlayerCore {
         this.isPlaying = false;
         this.shuffleMode = false;
         this.repeatMode = false;
-        this.songs = []; // This will be reference to LibraryManager.songs
+        this.songs = [];
     }
 
     setSongs(songs) {

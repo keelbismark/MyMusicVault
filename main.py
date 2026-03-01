@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 import threading
 import logging
@@ -6,7 +5,7 @@ import time
 import requests
 import webview
 
-sys.path.insert(0, str(Path(__file__).parent / "backend"))
+from backend.app import app
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -89,4 +88,5 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
     sys.exit(main())

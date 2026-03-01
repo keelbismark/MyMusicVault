@@ -1,11 +1,18 @@
 import json
 import os
+import sys
 from pathlib import Path
 
-DATA_FILE = Path(__file__).parent / 'data.json'
-CONFIG_FILE = Path(__file__).parent / 'config.json'
-LOCALES_DIR = Path(__file__).parent / 'locales'
+def get_base_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    else:
+        return os.path.dirname(os.path.abspath(__file__))
 
+BASE_DIR = get_base_dir()
+DATA_FILE = f"{BASE_DIR}/data.json"
+CONFIG_FILE = f"{BASE_DIR}/config.json"
+LOCALES_DIR = Path(__file__).parent / '../locales'
 
 class JSONHandler:
     @staticmethod
@@ -32,13 +39,13 @@ class JSONHandler:
     @staticmethod
     def load_config():
         default_config = {
-            'volume': 70,
+            'volume': 100,
             'repeat': False,
             'shuffle': False,
             'theme': 'dark',
-            'accent_color': '#667eea',
-            'language': 'ru',
-            'accent_color_dark': '#764ba2'
+            'accent_color': '#ff565f',
+            'language': 'en',
+            'accent_color_dark': '#ff565f'
         }
 
         if os.path.exists(CONFIG_FILE):
