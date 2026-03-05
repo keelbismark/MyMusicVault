@@ -4,11 +4,14 @@ import glob
 
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
+import mimetypes
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='/')
 CORS(app)
 
-MUSIC_FOLDER = os.path.join(os.path.dirname(sys.executable), 'music')
+from json_handler import get_base_dir
+MUSIC_FOLDER = os.path.join(get_base_dir(), 'music')
 SUPPORTED_EXTENSIONS = ('.mp3', '.flac', '.wav', '.ogg', '.m4a', '.webm', '.mp4')
 
 try:
@@ -175,7 +178,10 @@ def get_song(song_id):
 def play_song(filename):
     filepath = player.get_audio_file(filename)
     if filepath:
-        return send_file(filepath, mimetype='audio/mpeg')
+        mime_type, _ = mimetypes.guess_type(filepath)
+        if mime_type is None:
+            mime_type = 'application/octet-stream'
+        return send_file(filepath, mimetype=mime_type)
     return jsonify({'error': 'File not found'}), 404
 
 
@@ -235,9 +241,10 @@ def import_songs():
         imported = []
         for file in files:
             if file.filename.lower().endswith(SUPPORTED_EXTENSIONS):
-                filepath = os.path.join(MUSIC_FOLDER, file.filename)
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(MUSIC_FOLDER, filename)
                 file.save(filepath)
-                imported.append(file.filename)
+                imported.append(filename)
 
         if imported:
             player.playlist = []
